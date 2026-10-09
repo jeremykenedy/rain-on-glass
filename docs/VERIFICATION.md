@@ -9,4 +9,10 @@
 
 ## Limits
 
-The emulator image has no system Dream settings activity, so system selection and idle activation could not be exercised. No physical Fire TV or Google TV device test has been completed for Rain on Glass. Emulator validation does not establish vendor idle startup, native 4K rendering, hardware efficiency, long-duration thermal performance, deep sleep behavior, or Amazon update persistence. The renderer uses the Android Canvas at the device's logical view size and does not force a 4K buffer.
+The emulator image has no system Dream settings activity, so system selection and idle activation could not be exercised. Emulator validation does not establish vendor idle startup, native 4K rendering, hardware efficiency, long-duration thermal performance, deep sleep behavior, or Amazon update persistence. The renderer uses the Android Canvas at the device's logical view size and does not force a 4K buffer.
+
+| Platform | Device | Result |
+| --- | --- | --- |
+| Physical Fire TV | Not tested for this release | We are looking for a Fire TV owner to test installation, screensaver selection and activation, and remote settings, then report the model, Fire OS/API, resolution, and results in the [issue tracker](https://github.com/jeremykenedy/rain-on-glass/issues). |
+| Physical Android TV | Not tested for this release | We are looking for an Android TV owner to run the same checks and report the model, OS/API, resolution, and results in the [issue tracker](https://github.com/jeremykenedy/rain-on-glass/issues). |
+| Physical Google TV | Not tested for this release | We are looking for a Google TV owner to run the same checks and report the model, OS/API, resolution, and results in the [issue tracker](https://github.com/jeremykenedy/rain-on-glass/issues). |
