@@ -15,3 +15,11 @@ The signed candidate was installed on emulator-5586, Google TV API 34, using the
 Physical Fire TV testing, sustained high-density resource measurements, ordinary idle activation, reboot behavior and physical Android TV or Google TV checks remain open. The current candidate uses the surface's logical size and does not force or claim a native 4K buffer. It is not yet a published release.
 
 The earlier 1.0.0 Canvas renderer and its screenshots do not describe this candidate.
+
+| Physical platform | Candidate status | Requested evidence |
+| --- | --- | --- |
+| Fire TV | Pending | Model, Fire OS/API, resolution, selection, idle activation, remote settings and sustained performance |
+| Android TV | Pending | Model, OS/API, resolution, selection, idle activation and remote settings |
+| Google TV | Pending | Model, OS/API, resolution, selection, idle activation and remote settings |
+
+Device reports can be submitted through the [issue tracker](https://github.com/jeremykenedy/rain-on-glass/issues).
