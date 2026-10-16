@@ -1,9 +1,6 @@
 <p align="center">
-    <picture>
-        <source media="(prefers-color-scheme: dark)" srcset="art/banner-dark.svg">
-        <source media="(prefers-color-scheme: light)" srcset="art/banner-light.svg">
-        <img src="art/banner-light.svg" alt="Rain on Glass, an animated TV screensaver" width="800">
-    </picture>
+  <a href="https://github.com/jeremykenedy/rain-on-glass#gh-light-mode-only"><picture><source media="(max-width: 600px) and (prefers-reduced-motion: reduce)" srcset="art/banner-mobile-still-light.1be76b09f85b.svg"><source media="(prefers-reduced-motion: reduce)" srcset="art/banner-still-light.16fce21c09a8.svg"><source media="(max-width: 600px)" srcset="art/banner-mobile-light.9954dd50e67e.svg"><img src="art/banner-light.0c35cbeb58cb.svg#gh-light-mode-only" alt="Rain on Glass" width="800"></picture></a>
+  <a href="https://github.com/jeremykenedy/rain-on-glass#gh-dark-mode-only"><picture><source media="(max-width: 600px) and (prefers-reduced-motion: reduce)" srcset="art/banner-mobile-still-dark.9030830dddc1.svg"><source media="(prefers-reduced-motion: reduce)" srcset="art/banner-still-dark.ab6a6f39e971.svg"><source media="(max-width: 600px)" srcset="art/banner-mobile-dark.975aebd236ac.svg"><img src="art/banner-dark.610c594e8681.svg#gh-dark-mode-only" alt="Rain on Glass" width="800"></picture></a>
 </p>
 
 <p align="center">An animated rain-on-glass screensaver for Fire TV, Android TV, and Google TV. No ads, analytics, or tracking.</p>
@@ -16,7 +13,10 @@
   <a href="https://github.com/jeremykenedy/rain-on-glass/actions/workflows/docs.yml"><img src="https://github.com/jeremykenedy/rain-on-glass/actions/workflows/docs.yml/badge.svg?branch=main" alt="Documentation checks"></a>
   <a href="https://github.com/jeremykenedy/rain-on-glass/actions/workflows/security.yml"><img src="https://github.com/jeremykenedy/rain-on-glass/actions/workflows/security.yml/badge.svg?branch=main" alt="Privacy checks"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache--2.0-blue.svg" alt="Apache License 2.0"></a>
-  <a href="https://github.com/jeremykenedy"><img src="https://img.shields.io/github/followers/jeremykenedy?label=Follow" alt="Follow jeremykenedy on GitHub"></a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/jeremykenedy"><img src="https://img.shields.io/badge/Follow-jeremykenedy-181717?logo=github" alt="Follow jeremykenedy on GitHub"></a>
   <a href="https://github.com/jeremykenedy/rain-on-glass"><img src="https://img.shields.io/badge/Star-this%20repo-ffcb47" alt="Star this repository"></a>
   <a href="https://github.com/jeremykenedy/rain-on-glass/stargazers"><img src="https://img.shields.io/github/stars/jeremykenedy/rain-on-glass" alt="GitHub stars"></a>
   <a href="https://github.com/sponsors/jeremykenedy"><img src="https://img.shields.io/badge/Sponsor-jeremykenedy-ea4aaa" alt="Sponsor jeremykenedy"></a>
@@ -47,15 +47,15 @@ The app requests no network permission and has no ads, analytics, telemetry, cra
 - Each setting can be randomized independently, or all supported settings can be randomized when the screensaver starts.
 - Remote-friendly settings and preview screens.
 - Settings schema and values exposed through an app-owned content provider for host applications.
-- Procedural, original visuals with no bundled stock footage or third-party artwork.
+- GPU-rendered refraction, highlights and runoff over original bundled city backgrounds. No runtime downloads.
 
 ## Requirements
 
-- Fire TV, Android TV, or Google TV with Android 6.0 (API 23) or newer and DreamService support.
+- Fire TV, Android TV, or Google TV with Android 6.0 (API 23) or newer and DreamService support and OpenGL ES 2.0.
 - A computer with Python 3 and Android Debug Bridge (ADB) for CLI installation.
 - Android SDK platform 36 and build-tools 36.0.0 to build from source.
 
-The current release was verified on Android TV emulator-5570 (Google TV/Android TV system image, API and resolution in [verification notes](docs/VERIFICATION.md)). Fire TV and physical Google TV behavior have not been verified for this project.
+The 1.1.0 candidate has been checked on a Google TV API 34 emulator at 1920x1080, including an actual bound DreamService. Physical Fire TV, Android TV and Google TV acceptance remains pending. See [verification notes](docs/VERIFICATION.md).
 
 ## Installation
 
@@ -88,13 +88,13 @@ Host applications can query `content://com.jeremykenedy.rainonglass.settings/sch
 
 <table>
   <tr>
-    <td><img src="docs/screenshots/rain-on-glass-night.png" alt="Animated night rain on glass scene" width="800"></td>
-    <td><img src="docs/screenshots/rain-on-glass-overcast.png" alt="Animated overcast rain on glass scene" width="800"></td>
+    <td><img src="art/screenshots/rain-on-glass-night.png" alt="Animated night rain on glass scene" width="800"></td>
+    <td><img src="art/screenshots/rain-on-glass-overcast.png" alt="Animated overcast rain on glass scene" width="800"></td>
   </tr>
-  <tr><td colspan="2"><img src="docs/screenshots/rain-on-glass-settings.png" alt="Rain on Glass settings on the Android TV emulator" width="800"></td></tr>
+  <tr><td colspan="2"><img src="art/screenshots/rain-on-glass-settings.png" alt="Rain on Glass settings on the Android TV emulator" width="800"></td></tr>
 </table>
 
-The scene capture is from emulator-5570 after the animation started. It contains no app chrome, words, or watermark.
+The current candidate captures are from emulator-5586, Google TV API 34, after the native animation started. It contains no app chrome, words, or watermark.
 
 ## Building and testing
 
@@ -121,6 +121,7 @@ Owned option resolution and settings validation have 100% line and branch covera
 - [Testing](docs/TESTING.md)
 - [Troubleshooting](docs/TROUBLESHOOTING.md)
 - [Device verification](docs/VERIFICATION.md)
+- [v1.1.0 candidate notes](docs/releases/v1.1.0.md)
 - [v1.0.0 release notes](docs/releases/v1.0.0.md)
 
 ## License

@@ -1,0 +1,20 @@
+{
+  "night": {
+    "origin": "Original generated backdrop",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "source_sha256": "917c79d6d780733980a081c3977da13974af40872d4b054e02245545a05a0593",
+    "use": "Stationary distant environment behind animated refractive glass, not an animated output claim"
+  },
+  "overcast": {
+    "origin": "Original generated backdrop",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "source_sha256": "7389ead2826dba03d8bff54aba6af1ed9ce55499cfde3d4b9a64adbbf8eba2ba",
+    "use": "Stationary distant environment behind animated refractive glass, not an animated output claim"
+  }
+}

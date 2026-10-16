@@ -1,18 +1,25 @@
 # Device verification
 
-## Android TV emulator
+## 1.1.0 candidate
 
-- Device: `emulator-5570`, Android TV 64-bit emulator image, Android 12/API 31, 1920x1080.
-- App: `com.jeremykenedy.rainonglass`.
-- Verified: signed APK installs, package metadata resolves the DreamService, settings activity launches, preview renders the animated scene, provider schema is readable, and the settings screen is visible at 1920x1080.
-- Screenshots were captured from the running preview and settings activity after launch. See `docs/screenshots/`.
+The signed candidate was installed on emulator-5586, Google TV API 34, using the host GPU at a 1920x1080 logical output.
 
-## Limits
+- Native preview was inspected with the night and overcast environments. Both show moving refractive beads and narrow runoff trails over a blurred city.
+- A 10.95-second native night recording contains 249 encoded frames, about 22.7 captured frames per second under concurrent emulator and render load. This capture rate does not establish presented frame timing or physical Fire TV performance.
+- The real `RainDreamService` was bound through DreamManager in preview mode, stayed rendered, and exited with Back. The emulator's original Backdrop component and enabled setting were restored.
+- Settings display the six existing controls. Remote navigation changed density from A handful to Many, and the provider returned the persisted value. High-density and physical motion checks remain pending.
+- Current application screenshots are in `art/screenshots/`. Original background dimensions are 1672x941, documented in `assets/background-sources.json`.
 
-The emulator image has no system Dream settings activity, so system selection and idle activation could not be exercised. Emulator validation does not establish vendor idle startup, native 4K rendering, hardware efficiency, long-duration thermal performance, deep sleep behavior, or Amazon update persistence. The renderer uses the Android Canvas at the device's logical view size and does not force a 4K buffer.
+## Remaining acceptance checks
 
-| Platform | Device | Result |
+Physical Fire TV testing, sustained high-density resource measurements, ordinary idle activation, reboot behavior and physical Android TV or Google TV checks remain open. The current candidate uses the surface's logical size and does not force or claim a native 4K buffer. It is not yet a published release.
+
+The earlier 1.0.0 Canvas renderer and its screenshots do not describe this candidate.
+
+| Physical platform | Candidate status | Requested evidence |
 | --- | --- | --- |
-| Physical Fire TV | Not tested for this release | We are looking for a Fire TV owner to test installation, screensaver selection and activation, and remote settings, then report the model, Fire OS/API, resolution, and results in the [issue tracker](https://github.com/jeremykenedy/rain-on-glass/issues). |
-| Physical Android TV | Not tested for this release | We are looking for an Android TV owner to run the same checks and report the model, OS/API, resolution, and results in the [issue tracker](https://github.com/jeremykenedy/rain-on-glass/issues). |
-| Physical Google TV | Not tested for this release | We are looking for a Google TV owner to run the same checks and report the model, OS/API, resolution, and results in the [issue tracker](https://github.com/jeremykenedy/rain-on-glass/issues). |
+| Fire TV | Pending | Model, Fire OS/API, resolution, selection, idle activation, remote settings and sustained performance |
+| Android TV | Pending | Model, OS/API, resolution, selection, idle activation and remote settings |
+| Google TV | Pending | Model, OS/API, resolution, selection, idle activation and remote settings |
+
+Device reports can be submitted through the [issue tracker](https://github.com/jeremykenedy/rain-on-glass/issues).
