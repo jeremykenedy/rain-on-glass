@@ -1,9 +1,9 @@
 # Architecture
 
-Rain on Glass is a standalone Android application implemented with the Android SDK and Java. `RainDreamService` owns the Android DreamService lifecycle. `RainSceneView` draws the animated scene with Canvas primitives: a gradient window view, soft background light, fine surface droplets, and moving runoff beads. It uses no bundled images, videos, fonts, or sounds.
+Rain on Glass is a standalone Android SDK application. `RainDreamService` owns the screensaver lifecycle; `PreviewActivity` uses the same `RainSceneView` renderer.
 
-`RainOptions` resolves the saved or randomized settings at view creation. `SettingsActivity` provides the remote-friendly settings screen. `SettingsProvider` exposes a versioned schema and current values to host applications. `SettingsValues` validates updates before they are saved to local preferences.
+The OpenGL ES 2.0 renderer draws the distant city and a single batched layer of animated refractive glass beads. Original bundled city images provide the stationary environment. Preblurred variants support soft and crisp glass focus. Droplet geometry is uploaded once to a vertex buffer; vertex shaders animate runoff, and fragment shaders sample the environment through each bead with curved refraction, rim lighting and narrow trails. No textures are generated or downloaded while running.
 
-The app has no Internet permission, network SDK, analytics, telemetry, crash reporting, or background services. The standalone Python installer contacts GitHub only when the user explicitly installs or updates the APK.
+`RainOptions` resolves saved or randomized settings at view creation. `SettingsActivity` provides remote controls. `SettingsProvider` exposes the schema and values; `SettingsValues` rejects unsupported updates before preferences are saved.
 
-The canvas redraws at roughly 30 frames per second only while the preview or dream is active. The view stops scheduled draws when the dream pauses or detaches. See [testing](TESTING.md) and [device verification](VERIFICATION.md) for what has been measured and what remains unverified.
+The view requests frames about every 33 milliseconds while visible and pauses its GL surface and frame callbacks when stopped. This is a scheduling target, not a measured hardware performance guarantee. The app has no Internet permission, dependencies, ads, analytics, tracking, network SDKs or background worker services. See [testing](TESTING.md) and [device verification](VERIFICATION.md).
