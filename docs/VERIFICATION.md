@@ -12,7 +12,7 @@ The signed candidate was installed on emulator-5586, Google TV API 34, using the
 
 ## Offline credits follow-up
 
-The current follow-up adds a remote-accessible Credits and licenses button with the project NOTICE and full Apache license bundled in the APK. It preserves all six preference keys and the accepted scene. The signed credits candidate is `ca700f7717ed7d5e5aae1aa26da0615805a55cd8e0e8c066db81e69941aaf730`. All original non-DEX APK entries and compiled classes outside SettingsActivity match the preceding 860112 renderer baseline. This is rendering equivalence evidence, not a whole-APK identity claim. Host tests, actual Java formatting, line/branch coverage, installer, privacy and documentation checks pass. Native credits scrolling, exact final Preview/Dream/Back routes and physical quality/performance remain pending.
+The current follow-up adds a remote-accessible Credits and licenses button with the project NOTICE and full Apache license bundled in the APK. It preserves all six preference keys and the accepted scene. The signed credits candidate is `ca700f7717ed7d5e5aae1aa26da0615805a55cd8e0e8c066db81e69941aaf730`. All 13 original non-signature, non-DEX APK entries and 11 compiled classes outside SettingsActivity match the preceding 860112 renderer baseline. This is rendering equivalence evidence, not a whole-APK identity claim. Host tests, actual Java formatting, line/branch coverage, installer, privacy and documentation checks pass. Native credits scrolling, exact final Preview/Dream/Back routes and physical quality/performance remain pending.
 
 ## Remaining acceptance checks
 
