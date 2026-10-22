@@ -2,192 +2,267 @@ package com.jeremykenedy.rainonglass;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.graphics.Canvas;
-import android.graphics.LinearGradient;
-import android.graphics.Paint;
-import android.graphics.RadialGradient;
-import android.graphics.Shader;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.opengl.GLES20;
+import android.opengl.GLSurfaceView;
+import android.opengl.GLUtils;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
-import android.view.View;
-
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.FloatBuffer;
 import java.util.Random;
+import javax.microedition.khronos.egl.EGLConfig;
+import javax.microedition.khronos.opengles.GL10;
 
-final class RainSceneView extends View {
-    private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private final Random random = new Random(94103L);
-    private final float[] glowX = new float[9];
-    private final float[] glowY = new float[9];
-    private final float[] glowRadius = new float[9];
-    private final float[] surfaceX = new float[260];
-    private final float[] surfaceY = new float[260];
-    private final float[] surfaceSize = new float[260];
-    private RainOptions options;
-    private Drop[] drops;
-    private LinearGradient background;
-    private boolean running;
-    private long startedAt;
-
-    RainSceneView(Context context) {
-        super(context);
-        setLayerType(View.LAYER_TYPE_HARDWARE, null);
-        loadOptions();
-        for (int i = 0; i < glowX.length; i++) {
-            glowX[i] = random.nextFloat();
-            glowY[i] = random.nextFloat();
-            glowRadius[i] = 0.025f + random.nextFloat() * 0.07f;
+final class RainSceneView extends GLSurfaceView {
+  private boolean running;
+  private final Runnable frame =
+      new Runnable() {
+        @Override
+        public void run() {
+          if (running) {
+            requestRender();
+            postDelayed(this, 33L);
+          }
         }
-        for (int i = 0; i < surfaceX.length; i++) {
-            surfaceX[i] = random.nextFloat();
-            surfaceY[i] = random.nextFloat();
-            surfaceSize[i] = 0.45f + random.nextFloat() * 1.4f;
-        }
-    }
+      };
 
-    void start() {
-        if (!running) {
-            running = true;
-            startedAt = SystemClock.uptimeMillis();
-            postInvalidateOnAnimation();
-        }
-    }
+  RainSceneView(Context context) {
+    super(context);
+    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+    RainOptions options =
+        RainOptions.resolve(
+            preferences.getString("background", "night"),
+            preferences.getString("density", "handful"),
+            preferences.getString("motion", "steady"),
+            preferences.getString("city_glow", "on"),
+            preferences.getString("focus", "soft"),
+            preferences.getBoolean("randomize_all", false),
+            new Random());
+    setEGLContextClientVersion(2);
+    setEGLConfigChooser(8, 8, 8, 0, 0, 0);
+    setPreserveEGLContextOnPause(true);
+    setRenderer(new RainRenderer(context, options));
+    setRenderMode(RENDERMODE_WHEN_DIRTY);
+  }
 
-    void stop() {
-        running = false;
-        removeCallbacks(invalidator);
+  void start() {
+    if (running) return;
+    running = true;
+    onResume();
+    post(frame);
+  }
+
+  void stop() {
+    if (!running) return;
+    running = false;
+    removeCallbacks(frame);
+    onPause();
+  }
+
+  private static final class RainRenderer implements GLSurfaceView.Renderer {
+    private final Context context;
+    private final RainOptions options;
+    private final FloatBuffer screen =
+        buffer(new float[] {-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1});
+    private final FloatBuffer drops;
+    private final int count;
+    private int backgroundProgram;
+    private int dropProgram;
+    private int sharpTexture;
+    private int softTexture;
+    private int dropBuffer;
+    private int width;
+    private int height;
+    private long started;
+
+    RainRenderer(Context context, RainOptions options) {
+      this.context = context.getApplicationContext();
+      this.options = options;
+      int beads = options.drops * 3;
+      count = (options.drops + beads) * 6;
+      drops =
+          ByteBuffer.allocateDirect(count * 8 * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
+      Random random = new Random(94103L);
+      int[] cornersX = {-1, 1, -1, -1, 1, 1};
+      int[] cornersY = {-1, -1, 1, 1, -1, 1};
+      for (int i = 0; i < options.drops + beads; i++) {
+        boolean moving = i < options.drops;
+        float x = random.nextFloat();
+        float y = random.nextFloat();
+        float radius =
+            moving ? .006f + random.nextFloat() * .009f : .0007f + random.nextFloat() * .002f;
+        float velocity = moving ? .012f + random.nextFloat() * .038f : 0;
+        float phase = random.nextFloat() * 6.283185f;
+        float trail = moving ? 3f + random.nextFloat() * 6f : 1.15f;
+        for (int c = 0; c < 6; c++) {
+          drops.put(cornersX[c]).put(cornersY[c] > 0 ? trail : -1.3f);
+          drops.put(x).put(y).put(radius).put(velocity).put(phase).put(trail);
+        }
+      }
+      drops.position(0);
     }
 
     @Override
-    protected void onDraw(Canvas canvas) {
-        super.onDraw(canvas);
-        if (getWidth() == 0 || getHeight() == 0) return;
-        float time = (SystemClock.uptimeMillis() - startedAt) / 1000f;
-        drawBackground(canvas, time);
-        drawSurfaceDrops(canvas, time);
-        drawRain(canvas, time);
-        if (running) postDelayed(invalidator, 33L);
+    public void onSurfaceCreated(GL10 unused, EGLConfig config) {
+      backgroundProgram = program(SCREEN_VERTEX, BACKGROUND_FRAGMENT);
+      dropProgram = program(DROP_VERTEX, DROP_FRAGMENT);
+      sharpTexture = texture(options.light ? R.drawable.window_overcast : R.drawable.window_night);
+      softTexture =
+          texture(
+              options.light
+                  ? options.sharp
+                      ? R.drawable.window_overcast_crisp
+                      : R.drawable.window_overcast_soft
+                  : options.sharp ? R.drawable.window_night_crisp : R.drawable.window_night_soft);
+      int[] ids = new int[1];
+      GLES20.glGenBuffers(1, ids, 0);
+      dropBuffer = ids[0];
+      GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, dropBuffer);
+      GLES20.glBufferData(
+          GLES20.GL_ARRAY_BUFFER, drops.capacity() * 4, drops, GLES20.GL_STATIC_DRAW);
+      GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0);
+      started = SystemClock.uptimeMillis();
     }
 
     @Override
-    protected void onSizeChanged(int width, int height, int oldWidth, int oldHeight) {
-        super.onSizeChanged(width, height, oldWidth, oldHeight);
-        if (width <= 0 || height <= 0) return;
-        int top = options.light ? 0xff758b91 : 0xff101b2b;
-        int bottom = options.light ? 0xffc0c6c2 : 0xff02060d;
-        background = new LinearGradient(0, 0, width, height, top, bottom, Shader.TileMode.CLAMP);
+    public void onSurfaceChanged(GL10 unused, int width, int height) {
+      this.width = width;
+      this.height = Math.max(1, height);
+      GLES20.glViewport(0, 0, width, height);
     }
 
-    private final Runnable invalidator = new Runnable() {
-        @Override public void run() { if (running) invalidate(); }
-    };
+    @Override
+    public void onDrawFrame(GL10 unused) {
+      float time = (SystemClock.uptimeMillis() - started) * .001f;
+      GLES20.glDisable(GLES20.GL_DEPTH_TEST);
+      GLES20.glDisable(GLES20.GL_BLEND);
+      GLES20.glUseProgram(backgroundProgram);
+      GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
+      GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, softTexture);
+      GLES20.glUniform1i(GLES20.glGetUniformLocation(backgroundProgram, "uTexture"), 0);
+      GLES20.glUniform1f(
+          GLES20.glGetUniformLocation(backgroundProgram, "uGlow"), options.glow ? 1 : 0);
+      int position = GLES20.glGetAttribLocation(backgroundProgram, "aPosition");
+      GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0);
+      screen.position(0);
+      GLES20.glEnableVertexAttribArray(position);
+      GLES20.glVertexAttribPointer(position, 2, GLES20.GL_FLOAT, false, 0, screen);
+      GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 6);
+      GLES20.glDisableVertexAttribArray(position);
 
-    private void loadOptions() {
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getContext());
-        options = RainOptions.resolve(preferences.getString("background", "night"),
-                preferences.getString("density", "handful"), preferences.getString("motion", "steady"),
-                preferences.getString("city_glow", "on"), preferences.getString("focus", "soft"),
-                preferences.getBoolean("randomize_all", false), new Random(System.currentTimeMillis()));
-        drops = new Drop[options.drops];
-        for (int i = 0; i < drops.length; i++) {
-            float x = random.nextFloat();
-            float y = random.nextFloat();
-            float length = 0.045f + random.nextFloat() * (options.sharp ? 0.16f : 0.12f);
-            float width = 0.0028f + random.nextFloat() * 0.0035f;
-            float velocity = 0.12f + random.nextFloat() * 0.38f;
-            drops[i] = new Drop(x, y, length, width, velocity, random.nextFloat() * 6.28f,
-                    random.nextFloat() < 0.42f);
-        }
+      GLES20.glUseProgram(dropProgram);
+      GLES20.glEnable(GLES20.GL_BLEND);
+      GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
+      GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, sharpTexture);
+      GLES20.glUniform1i(GLES20.glGetUniformLocation(dropProgram, "uTexture"), 0);
+      GLES20.glActiveTexture(GLES20.GL_TEXTURE1);
+      GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, softTexture);
+      GLES20.glUniform1i(GLES20.glGetUniformLocation(dropProgram, "uBlur"), 1);
+      GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
+      GLES20.glUniform2f(GLES20.glGetUniformLocation(dropProgram, "uResolution"), width, height);
+      GLES20.glUniform1f(GLES20.glGetUniformLocation(dropProgram, "uTime"), time);
+      GLES20.glUniform1f(GLES20.glGetUniformLocation(dropProgram, "uSpeed"), options.speed);
+      GLES20.glUniform1f(GLES20.glGetUniformLocation(dropProgram, "uSharp"), options.sharp ? 1 : 0);
+      GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, dropBuffer);
+      attribute("aCorner", 2, 0);
+      attribute("aDrop", 4, 2);
+      attribute("aDetail", 2, 6);
+      GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, count);
+      GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0);
     }
 
-    private void drawBackground(Canvas canvas, float time) {
-        paint.setShader(background);
-        canvas.drawRect(0, 0, getWidth(), getHeight(), paint);
-        paint.setShader(null);
-        if (!options.glow) return;
-        for (int i = 0; i < glowX.length; i++) {
-            float drift = (float) Math.sin(time * 0.045f + i * 1.7f) * getWidth() * 0.035f;
-            float x = glowX[i] * getWidth() + drift;
-            float y = glowY[i] * getHeight();
-            float radius = glowRadius[i] * Math.min(getWidth(), getHeight());
-            int tint = options.light ? 0x387f9d83 : 0x5088a9ce;
-            paint.setShader(new RadialGradient(x, y, radius,
-                    new int[] {tint, tint & 0x00ffffff}, null, Shader.TileMode.CLAMP));
-            canvas.drawCircle(x, y, radius, paint);
-        }
-        paint.setShader(null);
+    private void attribute(String name, int size, int offset) {
+      int location = GLES20.glGetAttribLocation(dropProgram, name);
+      GLES20.glEnableVertexAttribArray(location);
+      GLES20.glVertexAttribPointer(location, size, GLES20.GL_FLOAT, false, 32, offset * 4);
     }
 
-    private void drawSurfaceDrops(Canvas canvas, float time) {
-        paint.setColor(options.light ? 0xffe4f4f1 : 0xffc4dce8);
-        for (int i = 0; i < surfaceX.length; i++) {
-            float pulse = 0.48f + 0.36f * (float) Math.sin(time * 0.3f + i * 1.9f);
-            paint.setAlpha((int) ((options.sharp ? 35 : 20) + (options.sharp ? 95 : 55) * pulse));
-            float x = surfaceX[i] * getWidth();
-            float y = surfaceY[i] * getHeight();
-            float size = surfaceSize[i] * (options.sharp ? 1.5f : 1f);
-            canvas.drawOval(x, y, x + size * 1.4f, y + size * 2.4f, paint);
-        }
-        paint.setAlpha(255);
+    private int texture(int resource) {
+      BitmapFactory.Options decode = new BitmapFactory.Options();
+      decode.inScaled = false;
+      Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), resource, decode);
+      if (bitmap == null) throw new IllegalStateException("Missing window background");
+      int[] ids = new int[1];
+      GLES20.glGenTextures(1, ids, 0);
+      GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, ids[0]);
+      GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
+      GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
+      GLES20.glTexParameteri(
+          GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
+      GLES20.glTexParameteri(
+          GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
+      GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0);
+      bitmap.recycle();
+      return ids[0];
     }
 
-    private void drawRain(Canvas canvas, float time) {
-        int color = options.light ? 0xaee6f3f3 : 0xbad8e9f4;
-        for (int i = 0; i < drops.length; i++) {
-            Drop drop = drops[i];
-            float x = (drop.x + (float) Math.sin(time * 0.22f + drop.phase) * 0.0025f) * getWidth();
-            float progress = (drop.y + time * drop.velocity * options.speed) % 1.08f;
-            float y = (progress - 0.04f) * getHeight();
-            float length = drop.length * getHeight();
-            float width = Math.max(1f, drop.width * getWidth());
-            if (drop.longDrop) drawRunoff(canvas, x, y, length, width, color);
-            else drawBead(canvas, x, y, length, width, color);
-        }
+    private static FloatBuffer buffer(float[] values) {
+      FloatBuffer result =
+          ByteBuffer.allocateDirect(values.length * 4)
+              .order(ByteOrder.nativeOrder())
+              .asFloatBuffer();
+      result.put(values).position(0);
+      return result;
     }
 
-    private void drawRunoff(Canvas canvas, float x, float y, float length, float width, int color) {
-        paint.setShader(null);
-        paint.setColor(options.light ? 0x4cffffff : 0x557a9cac);
-        paint.setStrokeWidth(Math.max(1f, width * 0.75f));
-        paint.setStrokeCap(Paint.Cap.ROUND);
-        paint.setStyle(Paint.Style.STROKE);
-        canvas.drawLine(x, y - length, x, y, paint);
-        paint.setStyle(Paint.Style.FILL);
-        paint.setColor(color);
-        paint.setAlpha(color >>> 24);
-        paint.setStyle(Paint.Style.FILL);
-        canvas.drawOval(x - width * 1.3f, y - width * 2.1f, x + width * 1.3f, y + width * 1.4f, paint);
-        paint.setColor(options.light ? 0x87ffffff : 0x99d7f6ff);
-        canvas.drawCircle(x - width * 0.45f, y - width * 0.7f, Math.max(1f, width * 0.38f), paint);
-        paint.setColor(0xffffffff);
+    private static int program(String vertex, String fragment) {
+      int program = GLES20.glCreateProgram();
+      int v = shader(GLES20.GL_VERTEX_SHADER, vertex);
+      int f = shader(GLES20.GL_FRAGMENT_SHADER, fragment);
+      GLES20.glAttachShader(program, v);
+      GLES20.glAttachShader(program, f);
+      GLES20.glLinkProgram(program);
+      int[] status = new int[1];
+      GLES20.glGetProgramiv(program, GLES20.GL_LINK_STATUS, status, 0);
+      if (status[0] == 0) throw new IllegalStateException(GLES20.glGetProgramInfoLog(program));
+      GLES20.glDeleteShader(v);
+      GLES20.glDeleteShader(f);
+      return program;
     }
 
-    private void drawBead(Canvas canvas, float x, float y, float length, float width, int color) {
-        paint.setColor(color);
-        paint.setAlpha(options.sharp ? 145 : 105);
-        float radius = Math.max(width * 1.25f, length * 0.2f);
-        canvas.drawOval(x - width, y - radius, x + width, y + radius * 1.7f, paint);
-        paint.setColor(options.light ? 0x68ffffff : 0x88f2fbff);
-        canvas.drawCircle(x - width * 0.35f, y - radius * 0.45f, Math.max(1f, width * 0.34f), paint);
-        paint.setColor(0xffffffff);
+    private static int shader(int type, String source) {
+      int shader = GLES20.glCreateShader(type);
+      GLES20.glShaderSource(shader, source);
+      GLES20.glCompileShader(shader);
+      int[] status = new int[1];
+      GLES20.glGetShaderiv(shader, GLES20.GL_COMPILE_STATUS, status, 0);
+      if (status[0] == 0) throw new IllegalStateException(GLES20.glGetShaderInfoLog(shader));
+      return shader;
     }
 
-    private static final class Drop {
-        final float x;
-        final float y;
-        final float length;
-        final float width;
-        final float velocity;
-        final float phase;
-        final boolean longDrop;
-
-        Drop(float x, float y, float length, float width, float velocity, float phase, boolean longDrop) {
-            this.x = x;
-            this.y = y;
-            this.length = length;
-            this.width = width;
-            this.velocity = velocity;
-            this.phase = phase;
-            this.longDrop = longDrop;
-        }
-    }
+    private static final String SCREEN_VERTEX =
+        "precision mediump float;attribute vec2 aPosition;varying vec2 vUv;void main(){vUv=vec2(aPosition.x*.5+.5,.5-aPosition.y*.5);gl_Position=vec4(aPosition,0.,1.);}";
+    private static final String BACKGROUND_FRAGMENT =
+        "precision mediump float;uniform sampler2D uTexture;uniform float uGlow;varying vec2 vUv;"
+            + "void main(){vec3 c=texture2D(uTexture,vUv).rgb;float light=max(c.r,max(c.g,c.b));"
+            + "c+=c*smoothstep(.45,.9,light)*uGlow*.16;gl_FragColor=vec4(c,1.);}";
+    private static final String DROP_VERTEX =
+        "precision highp float;attribute vec2 aCorner,aDetail;attribute vec4 aDrop;uniform mediump vec2 uResolution;uniform float uTime,uSpeed;"
+            + "varying mediump vec2 vLocal;varying mediump float vRadius,vPhase,vTrail;void main(){"
+            + "float t=uTime*uSpeed;float progress=mod(aDrop.y+aDrop.w*(t+.25*sin(t*.8+aDetail.x)),1.35)-.15;"
+            + "if(aDrop.w<.001)progress=aDrop.y;float x=aDrop.x+sin(t*.22+aDetail.x)*.0015;"
+            + "vec2 uv=vec2(x,progress)+vec2(aCorner.x*uResolution.y/uResolution.x,-aCorner.y)*aDrop.z;"
+            + "gl_Position=vec4(uv.x*2.-1.,1.-uv.y*2.,0.,1.);vLocal=aCorner;vRadius=aDrop.z;vPhase=aDetail.x;vTrail=aDetail.y;}";
+    private static final String DROP_FRAGMENT =
+        "precision mediump float;uniform sampler2D uTexture,uBlur;uniform vec2 uResolution;uniform float uSharp;"
+            + "varying vec2 vLocal;varying float vRadius,vPhase,vTrail;void main(){"
+            + "vec2 uv=vec2(gl_FragCoord.x/uResolution.x,1.-gl_FragCoord.y/uResolution.y);"
+            + "vec2 p=vLocal;float neck=.89-.13*smoothstep(-.8,.8,p.y);vec2 q=vec2(p.x/neck,(p.y+.12)/1.13);"
+            + "float r=length(q);float head=1.-smoothstep(.89+uSharp*.055,1.,r);"
+            + "float bend=sin(p.y*2.8+vPhase)*.10;float streak=1.-smoothstep(.045,.13,abs(p.x+bend));"
+            + "streak*=smoothstep(.65,1.2,p.y)*(1.-smoothstep(1.,vTrail,p.y))*.42;"
+            + "float alpha=max(head,streak);if(alpha<.01)discard;"
+            + "vec2 normal=q*sqrt(max(0.,1.-min(r*r,1.)));"
+            + "vec2 refract=vec2(normal.x*uResolution.y/uResolution.x,-normal.y)*vRadius*12.;"
+            + "if(head<.05)refract=vec2((p.x+bend)*vRadius*.6,0.);"
+            + "vec3 c=texture2D(uTexture,clamp(uv+refract,vec2(.001),vec2(.999))).rgb;"
+            + "c=mix(texture2D(uBlur,uv+refract*.35).rgb,c,.24);float rim=pow(min(r,1.),7.)*.08*head;"
+            + "float highlight=exp(-dot(q-vec2(-.32,.48),q-vec2(-.32,.48))*70.);"
+            + "float lip=exp(-dot(q-vec2(.08,-.72),q-vec2(.08,-.72))*60.)*.28;"
+            + "float edge=pow(max(0.,dot(normalize(q+vec2(.0001)),normalize(vec2(-.6,.8)))),12.)*smoothstep(.65,.93,r)*(1.-smoothstep(.93,1.,r));c=c*(1.-rim)+vec3(.85,.93,1.)*(highlight*.65+lip*.2+edge*.3);"
+            + "gl_FragColor=vec4(c,alpha);}";
+  }
 }

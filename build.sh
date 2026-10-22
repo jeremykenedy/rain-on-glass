@@ -8,8 +8,8 @@ ANDROID_JAR="$SDK/platforms/android-36/android.jar"
 OUT="$ROOT/build"
 KEYSTORE="${RAIN_ON_GLASS_KEYSTORE:-$HOME/.android/rain-on-glass.jks}"
 KEYPASS="${RAIN_ON_GLASS_KEYPASS:-$HOME/.android/rain-on-glass.pass}"
-VERSION_NAME="${VERSION_NAME:-1.0.0}"
-VERSION_CODE="${VERSION_CODE:-1}"
+VERSION_NAME="${VERSION_NAME:-1.1.0}"
+VERSION_CODE="${VERSION_CODE:-2}"
 
 for tool in javac keytool openssl zip; do
   command -v "$tool" >/dev/null || { echo "Missing required tool: $tool" >&2; exit 1; }
@@ -25,7 +25,7 @@ mkdir -p "$OUT/classes" "$OUT/dex"
 "$TOOLS/aapt2" link -o "$OUT/unsigned.apk" -I "$ANDROID_JAR" \
   --manifest "$ROOT/AndroidManifest.xml" --min-sdk-version 23 --target-sdk-version 36 \
   --version-code "$VERSION_CODE" --version-name "$VERSION_NAME" \
-  --java "$OUT/generated" "$OUT/res.zip"
+  --java "$OUT/generated" -A "$ROOT/assets" "$OUT/res.zip"
 find "$ROOT/src" "$OUT/generated" -name '*.java' > "$OUT/sources.txt"
 javac -nowarn -Xlint:-options -source 8 -target 8 -bootclasspath "$ANDROID_JAR" \
   -d "$OUT/classes" @"$OUT/sources.txt"
