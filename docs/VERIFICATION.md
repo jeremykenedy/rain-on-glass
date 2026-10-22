@@ -12,21 +12,17 @@ The signed candidate was installed on emulator-5586, Google TV API 34, using the
 
 ## Offline credits follow-up
 
-The current follow-up adds a remote-accessible Credits and licenses button with the project NOTICE and full Apache license bundled in the APK. It preserves all six preference keys and the accepted scene. The signed credits candidate is `ca700f7717ed7d5e5aae1aa26da0615805a55cd8e0e8c066db81e69941aaf730`. All 13 original non-signature, non-DEX APK entries and 11 compiled classes outside SettingsActivity match the preceding 860112 renderer baseline. This is rendering equivalence evidence, not a whole-APK identity claim. Host tests, actual Java formatting, line/branch coverage, installer, privacy and documentation checks pass. The exact native credits and navigation follow-up is recorded below. Physical quality and sustained performance remain pending.
+The current follow-up adds a remote-accessible Credits and licenses button with the project NOTICE and full Apache license bundled in the APK. It preserves all six preference keys and the accepted scene. The signed credits candidate is `ca700f7717ed7d5e5aae1aa26da0615805a55cd8e0e8c066db81e69941aaf730`. All 13 original non-signature, non-DEX APK entries and 11 compiled classes outside SettingsActivity match the preceding 860112 renderer baseline. This is rendering equivalence evidence, not a whole-APK identity claim. Host tests, actual Java formatting, line/branch coverage, installer, privacy and documentation checks pass. The exact native credits and navigation follow-up is recorded below. Physical verification is recorded below; sustained thermal measurements remain untested.
 
-## Remaining acceptance checks
+## October 22 physical Fire TV acceptance
 
-Physical Fire TV testing, sustained high-density resource measurements, ordinary idle activation, reboot behavior and physical Android TV or Google TV checks remain open. The current candidate uses the surface's logical size and does not force or claim a native 4K buffer. It is not yet a published release.
+The final original-key signed 1.1.0/code 2 APK above was installed in place on a Fire TV AFTDEC012E/API 30. All six exposed pre-update preferences survived. The night/downpour/fast/crisp/distant-light preset ran for 40 seconds before a SurfaceFlinger sample measured 30.2417 actual presents per second across 126 presents (median 33.325 ms, maximum 33.575 ms). This is a short production-frame sample, not encoded movie FPS, a thermal endurance test or a native 4K claim.
 
-The earlier 1.0.0 Canvas renderer and its screenshots do not describe this candidate.
+D-pad Settings reached Preview. Menu left Preview active; no custom Menu action is implemented. Back returned Settings and Home exited the app. A second overcast/few/slow/soft/no-glow preset rendered in the actual selected non-test RainDreamService and exited with Back. An eight-second physical recording was reviewed at normal speed: coherent moving refraction and runoff, no incidental text or watermark.
 
-| Physical platform | Candidate status | Requested evidence |
-| --- | --- | --- |
-| Fire TV | Pending | Model, Fire OS/API, resolution, selection, idle activation, remote settings and sustained performance |
-| Android TV | Pending | Model, OS/API, resolution, selection, idle activation and remote settings |
-| Google TV | Pending | Model, OS/API, resolution, selection, idle activation and remote settings |
+All six app preferences, the previously selected screensaver, eight protected system settings, the Aquarium and Jellyfish settings, UI backup and foreground protection service were preserved. The original actual Aquarium Dream was restored. No timer was changed and no app data was cleared or uninstalled.
 
-Device reports can be submitted through the [issue tracker](https://github.com/jeremykenedy/rain-on-glass/issues).
+Ordinary automatic idle entry, reboot behavior, sustained thermal measurements, physical Android TV/Google TV models and native 4K buffers remain untested. Physical screenshots and sanitized artifact provenance appear in the [current gallery](SCREENSHOTS.md).
 
 ## October 22 exact credits candidate
 

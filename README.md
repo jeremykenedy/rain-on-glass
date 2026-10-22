@@ -42,12 +42,12 @@ The app requests no network permission and has no ads, analytics, telemetry, cra
 
 ## Features
 
-- Continuously animated rain beads and runoff trails over a softly lit, defocused background.
-- Night or overcast background, five rain densities, three speeds, distant light, and soft or crisp glass focus.
-- Each setting can be randomized independently, or all supported settings can be randomized when the screensaver starts.
-- Remote-friendly settings and preview screens.
-- Settings schema and values exposed through an app-owned content provider for host applications.
-- GPU-rendered refraction, highlights and runoff over original bundled city backgrounds. No runtime downloads.
+| Feature | What it does | Guide |
+| --- | --- | --- |
+| Refractive rain | Moving glass beads and runoff over bundled city environments | [Scene and options](docs/CONFIGURATION.md) |
+| Personal settings | Choose lighting, density, speed, glow and focus, or randomize them | [Configuration](docs/CONFIGURATION.md) |
+| Native screensaver | Remote settings, preview, offline credits and DreamService playback | [Device verification](docs/VERIFICATION.md) |
+| Host integration | Query and update the app-owned settings provider | [Provider contract](docs/CONFIGURATION.md) |
 
 ## Requirements
 
@@ -55,7 +55,7 @@ The app requests no network permission and has no ads, analytics, telemetry, cra
 - A computer with Python 3 and Android Debug Bridge (ADB) for CLI installation.
 - Android SDK platform 36 and build-tools 36.0.0 to build from source.
 
-The 1.1.0 candidate has been checked on a Google TV API 34 emulator at 1920x1080, including an actual bound DreamService. Physical Fire TV, Android TV and Google TV acceptance remains pending. See [verification notes](docs/VERIFICATION.md).
+Version 1.1.0 was checked on a Fire TV AFTDEC012E/API 30 and a Google TV API 34 emulator at 1920x1080. The physical high-density preset presented 30.24 frames per second after warmup; ordinary automatic idle, reboot and other physical models remain untested. See [verification notes](docs/VERIFICATION.md).
 
 ## Installation
 
@@ -73,28 +73,19 @@ After installation, choose Rain on Glass in the device's screensaver settings. T
 
 Open Rain on Glass settings from the app list or the device's screensaver settings. Changes apply the next time the dream starts. Each choice includes Random; the master toggle randomizes all options at startup.
 
-| Setting | Choices | Default |
-|---|---|---|
-| Window lighting | Night, Overcast, Random | Night |
-| Rain density | A few, A handful, Many, Heavy, Downpour, Random | A handful |
-| Rain speed | Slow, Steady, Fast, Random | Steady |
-| Distant light | Off, On, Random | On |
-| Glass focus | Soft, Crisp, Random | Soft |
-| Randomize all | On, Off | Off |
-
-Host applications can query `content://com.jeremykenedy.rainonglass.settings/schema` and `/settings`, then update an individual setting using the `key` and `value` columns at `/settings`. See [configuration](docs/CONFIGURATION.md).
+See the [complete option and provider reference](docs/CONFIGURATION.md) for defaults, allowed values and host integration.
 
 ## Screenshots
 
 <table>
   <tr>
-    <td><img src="art/screenshots/rain-on-glass-night.png" alt="Animated night rain on glass scene" width="800"></td>
-    <td><img src="art/screenshots/rain-on-glass-overcast.png" alt="Animated overcast rain on glass scene" width="800"></td>
+    <td><img src="art/screenshots/physical-night-preview.png" alt="Physical Fire TV night rain preview" width="320"></td>
+    <td><img src="art/screenshots/physical-overcast-dream.png" alt="Physical Fire TV overcast selected screensaver" width="320"></td>
+    <td><img src="art/screenshots/credits-api34-credits.png" alt="Offline credits on the API 34 emulator" width="320"></td>
   </tr>
-  <tr><td colspan="2"><img src="art/screenshots/rain-on-glass-settings.png" alt="Rain on Glass settings on the Android TV emulator" width="800"></td></tr>
 </table>
 
-The current candidate captures are from emulator-5586, Google TV API 34, after the native animation started. It contains no app chrome, words, or watermark.
+Current 1.1.0 captures: the first two show the physical Fire TV; credits use the API 34 emulator. See the [full native gallery](docs/SCREENSHOTS.md) and [verification limits](docs/VERIFICATION.md).
 
 ## Building and testing
 
@@ -121,7 +112,8 @@ Owned option resolution and settings validation have 100% line and branch covera
 - [Testing](docs/TESTING.md)
 - [Troubleshooting](docs/TROUBLESHOOTING.md)
 - [Device verification](docs/VERIFICATION.md)
-- [v1.1.0 candidate notes](docs/releases/v1.1.0.md)
+- [Current native gallery](docs/SCREENSHOTS.md)
+- [v1.1.0 release notes](docs/releases/v1.1.0.md)
 - [v1.0.0 release notes](docs/releases/v1.0.0.md)
 
 ## License

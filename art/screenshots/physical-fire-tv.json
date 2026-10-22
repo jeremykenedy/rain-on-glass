@@ -1,0 +1,23 @@
+{
+  "capturedAt": "2026-10-22",
+  "platform": "Fire TV AFTDEC012E / Android API30",
+  "apkSha256": "ca700f7717ed7d5e5aae1aa26da0615805a55cd8e0e8c066db81e69941aaf730",
+  "version": "1.1.0",
+  "versionCode": 2,
+  "presentsPerSecond": 30.24174894349585,
+  "measurement": "SurfaceFlinger actual production SurfaceView presents after40seconds max-preset warmup; not encoded recording FPS",
+  "captures": [
+    {
+      "file": "physical-night-preview.png",
+      "sha256": "4bb84ee1d852510eafb882078beda83585635750b3f1e8d1fac51841a1db8fb7",
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "file": "physical-overcast-dream.png",
+      "sha256": "114e6fac786e2488c5b7f535f93915ca8cb34960bc524e6d1a6a73849f8cff0c",
+      "width": 1920,
+      "height": 1080
+    }
+  ]
+}
