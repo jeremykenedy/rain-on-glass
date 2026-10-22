@@ -11,8 +11,10 @@ These images show the frozen 1.1.0/code 2 APK, SHA-256 `ca700f7717ed7d5e5aae1aa2
   <tr>
     <td><img src="../art/screenshots/credits-api34-credits.png" alt="Bundled offline NOTICE and credits" width="320"></td>
     <td><img src="../art/screenshots/credits-api34-license-end.png" alt="Full Apache license scrolled to its end and focused Close button" width="320"></td>
-    <td>Credits, the complete license, Preview and Back were exercised with a D-pad. No network is required.</td>
+    <td></td>
   </tr>
 </table>
+
+Credits, the complete license, Preview and Back were exercised with a D-pad. No network is required.
 
 [Physical provenance](../art/screenshots/physical-fire-tv.json), [API 34 provenance](../art/screenshots/credits-api34.json) and [verification](VERIFICATION.md) distinguish native workflow proof from physical performance and untested platforms.
